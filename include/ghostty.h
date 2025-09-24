@@ -875,13 +875,29 @@ typedef struct {
   const char **arguments;
 } ghostty_ipc_action_new_window_s;
 
+// apprt.ipc.Action.NewSplit
+typedef struct {
+  const char *direction;
+  const char **arguments;
+} ghostty_ipc_action_new_split_s;
+
+// apprt.ipc.Action.SendToSplit
+typedef struct {
+  const char *target;
+  const char *text;
+} ghostty_ipc_action_send_to_split_s;
+
 typedef union {
   ghostty_ipc_action_new_window_s new_window;
+  ghostty_ipc_action_new_split_s new_split;
+  ghostty_ipc_action_send_to_split_s send_to_split;
 } ghostty_ipc_action_u;
 
 // apprt.ipc.Action.Key
 typedef enum {
   GHOSTTY_IPC_ACTION_NEW_WINDOW,
+  GHOSTTY_IPC_ACTION_NEW_SPLIT,
+  GHOSTTY_IPC_ACTION_SEND_TO_SPLIT,
 } ghostty_ipc_action_tag_e;
 
 //-------------------------------------------------------------------

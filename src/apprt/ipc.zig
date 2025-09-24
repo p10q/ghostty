@@ -67,6 +67,12 @@ pub const Action = union(enum) {
 
     /// The arguments to pass to Ghostty as the command.
     new_window: NewWindow,
+    
+    /// Create a new split in the current window
+    new_split: NewSplit,
+    
+    /// Send input to a specific split or the focused split
+    send_to_split: SendToSplit,
 
     pub const NewWindow = struct {
         /// A list of command arguments to launch in the new window. If this is
@@ -108,6 +114,8 @@ pub const Action = union(enum) {
     /// Sync with: ghostty_ipc_action_tag_e
     pub const Key = enum(c_uint) {
         new_window,
+        new_split,
+        send_to_split,
     };
 
     /// Sync with: ghostty_ipc_action_u
@@ -180,4 +188,58 @@ pub const Action = union(enum) {
             .value = value,
         };
     }
+    
+    pub const NewSplit = struct {
+        /// Direction to split: right, down, left, up, or auto
+        direction: [:0]const u8,
+        
+        /// Optional command arguments to launch in the new split
+        arguments: ?[][:0]const u8,
+        
+        pub const C = extern struct {
+            direction: [*:0]const u8,
+            arguments: ?[*]?[*:0]const u8,
+            
+            pub fn deinit(self: *NewSplit.C, alloc: Allocator) void {
+                if (self.arguments) |arguments| alloc.free(arguments);
+            }
+        };
+        
+        pub fn cval(self: *NewSplit, alloc: Allocator) Allocator.Error!NewSplit.C {
+            var result: NewSplit.C = .{
+                .direction = self.direction.ptr,
+                .arguments = null,
+            };
+            
+            if (self.arguments) |arguments| {
+                result.arguments = try alloc.alloc([*:0]const u8, arguments.len + 1);
+                for (arguments, 0..) |argument, i|
+                    result.arguments[i] = argument.ptr;
+                result.arguments[arguments.len] = null;
+            }
+            
+            return result;
+        }
+    };
+    
+    pub const SendToSplit = struct {
+        /// Split identifier (index, id, or "focused" for current split)
+        target: [:0]const u8,
+        
+        /// The text/keys to send
+        text: [:0]const u8,
+        
+        pub const C = extern struct {
+            target: [*:0]const u8,
+            text: [*:0]const u8,
+        };
+        
+        pub fn cval(self: *SendToSplit, alloc: Allocator) SendToSplit.C {
+            _ = alloc;
+            return .{
+                .target = self.target.ptr,
+                .text = self.text.ptr,
+            };
+        }
+    };
 };

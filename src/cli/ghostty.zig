@@ -19,6 +19,8 @@ const crash_report = @import("crash_report.zig");
 const show_face = @import("show_face.zig");
 const boo = @import("boo.zig");
 const new_window = @import("new_window.zig");
+const new_split = @import("new_split.zig");
+const send_to_split = @import("send_to_split.zig");
 
 /// Special commands that can be invoked via CLI flags. These are all
 /// invoked by using `+<action>` as a CLI flag. The only exception is
@@ -68,6 +70,12 @@ pub const Action = enum {
 
     // Use IPC to tell the running Ghostty to open a new window.
     @"new-window",
+    
+    // Use IPC to create a new split in the running Ghostty.
+    @"new-split",
+    
+    // Use IPC to send text to a specific split.
+    @"send-to-split",
 
     pub fn detectSpecialCase(arg: []const u8) ?SpecialCase(Action) {
         // If we see a "-e" and we haven't seen a command yet, then
@@ -141,6 +149,8 @@ pub const Action = enum {
             .@"show-face" => try show_face.run(alloc),
             .boo => try boo.run(alloc),
             .@"new-window" => try new_window.run(alloc),
+            .@"new-split" => try new_split.run(alloc),
+            .@"send-to-split" => try send_to_split.run(alloc),
         };
     }
 
@@ -180,6 +190,8 @@ pub const Action = enum {
                 .@"show-face" => show_face.Options,
                 .boo => boo.Options,
                 .@"new-window" => new_window.Options,
+                .@"new-split" => new_split.Options,
+                .@"send-to-split" => send_to_split.Options,
             };
         }
     }
